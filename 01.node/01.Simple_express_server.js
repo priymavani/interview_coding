@@ -80,7 +80,21 @@ app.patch('/users/:id', (req, res) => {
     res.status(200).json({ message: "User updated successfully", user });
 });
 
+// 7. DELETE a User
+app.delete('/users/:id' , (req,res) => {
+    const id = parseInt(req.params.id);
+    const index = users.findIndex(user => user.id === id);
 
+    if(index === -1){
+        return res.status(404).json({message : "User not found"});
+
+    }
+
+    users.splice(index, 1);
+
+    res.status(200).json({message : "user deleted successfully"});
+
+})
 
 app.listen(port , () => {
     console.log(`Server is running on port ${port}`);
