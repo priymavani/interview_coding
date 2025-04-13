@@ -1,25 +1,37 @@
 const express = require('express');
+const rateLimiter = require("./Rate_Limit_Middleware.js");
 const app = express();
 const port = 7001;
 
-let users =[ {
-    id:1,
-    name: "Priy mavani",
-    Profession: "web developer",
-    age: 20
-},
-{
-    id:2,
-    name: "Jay mavani",
-    Profession: "Technician",
-    age: 20
-}
-]
+let users = [
+    { id: 1, name: "Priy Mavani", Profession: "Web Developer", age: 20 , role : "admin" },
+    { id: 2, name: "Jay Mavani", Profession: "Technician", age: 20,role : "admin" },
+    { id: 3, name: "Raj Patel", Profession: "UI Designer", age: 21 },
+    { id: 4, name: "Dev Joshi", Profession: "Backend Developer", age: 22 },
+    { id: 5, name: "Kishan Parmar", Profession: "Frontend Developer", age: 20 },
+    { id: 6, name: "Yash Vyas", Profession: "DevOps Engineer", age: 23 },
+    { id: 7, name: "Sahil Shah", Profession: "Software Engineer", age: 21 },
+    { id: 8, name: "Ravi Thakkar", Profession: "QA Tester", age: 22 },
+    { id: 9, name: "Meet Dave", Profession: "UI/UX Designer", age: 20 },
+    { id: 10, name: "Dhruv Patel", Profession: "Database Admin", age: 23 },
+    { id: 11, name: "Bhargav Makwana", Profession: "Tech Support", age: 21 },
+    { id: 12, name: "Vatsal Mehta", Profession: "System Analyst", age: 22 },
+    { id: 13, name: "Jeel Gohil", Profession: "App Developer", age: 20 },
+    { id: 14, name: "Harshil Rana", Profession: "Python Developer", age: 22 },
+    { id: 15, name: "Vivek Pandya", Profession: "Full Stack Developer", age: 24 },
+    { id: 16, name: "Neel Trivedi", Profession: "Data Analyst", age: 21 },
+    { id: 17, name: "Om Patel", Profession: "Ethical Hacker", age: 22 },
+    { id: 18, name: "Manav Shah", Profession: "Security Analyst", age: 20 },
+    { id: 19, name: "Akash Dodia", Profession: "AI Engineer", age: 23 },
+    { id: 20, name: "Rahil Patel", Profession: "Cloud Architect", age: 24 }
+  ];
+  
 
+  app.use(express.json());
+  app.use(rateLimiter);
+  
 // 2. GET All Users (Static or From Memory)
-app.use(express.json());
-
-app.get('/users',(req,res) =>{
+app.get('/users/all',(req,res) =>{
     
     res.json(users);
 });
@@ -95,6 +107,43 @@ app.delete('/users/:id' , (req,res) => {
     res.status(200).json({message : "user deleted successfully"});
 
 })
+
+// 13. Pagination for GET /users
+//  Sort or Filter Users by Query
+// GET /users?page=2&limit=10
+app.get('/users', (req, res) => {
+    let page = parseInt(req.query.page) || 1;
+    let limit = parseInt(req.query.limit) || 10;
+    const role = req.query.role;
+    const name = req.query.name;
+
+    if (page < 1) page = 1;
+    if (limit < 1) limit = 10;
+
+    let filteredUsers = users;
+
+    if (role) {
+        filteredUsers = filteredUsers.filter(user => user.role === role);
+    }
+    if (name) {
+        filteredUsers = filteredUsers.filter(user => user.name === name);
+    }
+
+    const startIndex = (page - 1) * limit;
+    const endIndex = startIndex + limit;
+
+    const paginatedUsers = filteredUsers.slice(startIndex, endIndex);
+
+    res.json({
+        page,
+        limit,
+        totalUsers: filteredUsers.length,
+        totalPages: Math.ceil(filteredUsers.length / limit),
+        users: paginatedUsers
+    });
+});
+
+
 
 app.listen(port , () => {
     console.log(`Server is running on port ${port}`);
